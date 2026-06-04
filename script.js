@@ -470,50 +470,6 @@ function calcularTempoTotal() {
   return (temposFases || []).reduce((a, b) => a + (+b || 0), 0);
 }
 
-function buildResultsPerguntasRespostas(imageUrl = null) {
-  const lista = [];
-
-  (resultadosFases || []).forEach((fase, idx) => {
-    if (!fase) return;
-
-    lista.push({
-      pergunta: `Fase ${idx + 1} - Status`,
-      resposta: fase.status || ""
-    });
-
-    lista.push({
-      pergunta: `Fase ${idx + 1} - Tentativas com erro`,
-      resposta: String(fase.tentativas_falhas || 0)
-    });
-
-    lista.push({
-      pergunta: `Fase ${idx + 1} - Tempo em segundos`,
-      resposta: String(fase.tempo_segundos || 0)
-    });
-  });
-
-  lista.push({
-    pergunta: "Tempo total em segundos",
-    resposta: String(calcularTempoTotal())
-  });
-
-  lista.push({
-    pergunta: "Imagem final",
-    resposta: imageUrl || ""
-  });
-
-  return lista;
-}
-
-function buildResultsMeta(imageUrl = null, imagePath = null) {
-  return {
-    fases: resultadosFases || [],
-    tempo_total_segundos: calcularTempoTotal(),
-    image_url: imageUrl,
-    image_path: imagePath
-  };
-}
-
 // ====================== STORAGE ======================
 function buildImagePath(cpf, testCode, submittedAt) {
   const stamp = submittedAt.replace(/[:.]/g, "-");
@@ -1061,8 +1017,6 @@ async function enviarResultados() {
     if (sendStatusEl) sendStatusEl.textContent = "Enviando imagem ao Storage...";
 
     const uploadResult = await uploadCombinedImageToSupabase(cpf, testCode, submittedAt);
-    const resultsPayload = buildResultsPerguntasRespostas(uploadResult.imageUrl);
-    const resultsMetaPayload = buildResultsMeta(uploadResult.imageUrl, uploadResult.imagePath);
 
     if (sendStatusEl) sendStatusEl.textContent = "Salvando resposta...";
 
@@ -1072,10 +1026,7 @@ async function enviarResultados() {
         cpf: cpf,
         code: testCode,
         submitted_at: submittedAt,
-        results: resultsPayload,
-        results_meta: resultsMetaPayload,
-        image_url: uploadResult.imageUrl,
-        image_path: uploadResult.imagePath
+        image_url: uploadResult.imageUrl
       }]);
 
     if (insertError) {
