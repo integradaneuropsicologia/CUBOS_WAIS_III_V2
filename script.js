@@ -1111,6 +1111,9 @@ async function enviarResultados() {
     if (sendStatusEl) sendStatusEl.textContent = "Enviando imagem ao Storage...";
 
     const uploadResult = await uploadCombinedImageToSupabase(cpf, testCode, submittedAt);
+    if (!uploadResult.imageUrl) {
+      throw new Error("Não foi possível gerar o link público da imagem.");
+    }
 
     if (sendStatusEl) sendStatusEl.textContent = "Salvando resposta...";
 
@@ -1120,7 +1123,9 @@ async function enviarResultados() {
         cpf: cpf,
         code: testCode,
         submitted_at: submittedAt,
-        image_url: uploadResult.imageUrl
+        results_meta: {
+          image_url: uploadResult.imageUrl
+        }
       }]);
 
     if (insertError) {
